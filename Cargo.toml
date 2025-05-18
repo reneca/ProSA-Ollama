@@ -1,7 +1,15 @@
 [package]
 name = "prosa-ollama"
 version = "0.1.0"
+authors = ["Jeremy HERGAULT"]
+repository = "https://github.com/reneca/ProSA-Ollama"
+license = "LGPL-3.0-or-later"
 edition = "2024"
+description = "ProSA processor for Ollama"
+
+[package.metadata.prosa.ollama]
+proc = "proc::OllamaProc"
+settings = "proc::OllamaProcSettings"
 
 [dependencies]
 ollama-rs = "0.2"
