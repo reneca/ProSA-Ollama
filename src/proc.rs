@@ -68,6 +68,22 @@ impl OllamaProcSettings {
         Url::from_str("http://localhost:11434").unwrap()
     }
 
+    /// Create a settings with Ollama URL and processor service name
+    pub fn new(url: Url, allow_insecure: bool, service: String) -> OllamaProcSettings {
+        OllamaProcSettings {
+            url,
+            models: Vec::new(),
+            allow_insecure,
+            service,
+            ..Default::default()
+        }
+    }
+
+    /// Setter to list model that processor need before starting
+    pub fn set_models(&mut self, models: Vec<String>) {
+        self.models = models;
+    }
+
     pub fn get_ollama(&self) -> Ollama {
         Ollama::from_url(self.url.clone())
     }
