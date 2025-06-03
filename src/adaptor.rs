@@ -1,3 +1,5 @@
+use prosa::core::msg::RequestMsg;
+
 use crate::proc::{OllamaError, OllamaProc, OllamaRequest, OllamaResponse};
 
 pub trait OllamaAdaptor<M>
@@ -19,11 +21,15 @@ where
 
     /// Method to process incomming requests
     fn process_request<'a>(
-        &self,
+        &mut self,
         service_name: &str,
         request: &M,
     ) -> Result<OllamaRequest<'a>, OllamaError>;
 
     /// Method to process Ollama responses
-    fn process_ollama_response(&self, response: OllamaResponse) -> Result<M, OllamaError>;
+    fn process_ollama_response(
+        &mut self,
+        response: OllamaResponse,
+        original_request: &RequestMsg<M>,
+    ) -> Result<M, OllamaError>;
 }

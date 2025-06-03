@@ -189,6 +189,7 @@ where
                                     Ok(local_model) => {
                                         match adaptor.process_ollama_response(
                                             OllamaResponse::LocalModels(local_model),
+                                            &msg,
                                         ) {
                                             Ok(resp) => msg.return_to_sender(resp).await?,
                                             Err(e) => {
@@ -210,6 +211,7 @@ where
                                     Ok(model_info) => {
                                         match adaptor.process_ollama_response(
                                             OllamaResponse::ModelInfo(model_info),
+                                            &msg,
                                         ) {
                                             Ok(resp) => msg.return_to_sender(resp).await?,
                                             Err(e) => {
@@ -229,7 +231,8 @@ where
                             Ok(OllamaRequest::GenerateRequest(request)) => {
                                 match ollama.generate(*request).await {
                                     Ok(response) => {
-                                        match adaptor.process_ollama_response(response.into()) {
+                                        match adaptor.process_ollama_response(response.into(), &msg)
+                                        {
                                             Ok(resp) => msg.return_to_sender(resp).await?,
                                             Err(e) => {
                                                 msg.return_error_to_sender(None, e.into()).await?
@@ -248,7 +251,8 @@ where
                             Ok(OllamaRequest::GenerateEmbeddingsRequest(embeddings_request)) => {
                                 match ollama.generate_embeddings(*embeddings_request).await {
                                     Ok(response) => {
-                                        match adaptor.process_ollama_response(response.into()) {
+                                        match adaptor.process_ollama_response(response.into(), &msg)
+                                        {
                                             Ok(resp) => msg.return_to_sender(resp).await?,
                                             Err(e) => {
                                                 msg.return_error_to_sender(None, e.into()).await?
