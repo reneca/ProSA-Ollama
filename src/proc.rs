@@ -9,7 +9,7 @@ use prosa::core::error::ProcError;
 use prosa::core::msg::{InternalMsg, Msg};
 use prosa::core::proc::{Proc, ProcBusParam, proc, proc_settings};
 use prosa::core::service::ServiceError;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use std::str::FromStr;
 use thiserror::Error;
 use tracing::info;
@@ -49,7 +49,7 @@ impl ProcError for OllamaError {
 }
 
 #[proc_settings]
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct OllamaProcSettings {
     /// Url of the Ollama API server
     #[serde(default = "OllamaProcSettings::default_url")]
