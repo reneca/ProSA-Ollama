@@ -1,20 +1,17 @@
-use base64::{
-    Engine as _,
-    engine::general_purpose::STANDARD,
-};
-use ollama_rs::generation::chat::ChatMessageResponse;
-use ollama_rs::headers::{HeaderMap, HeaderValue, InvalidHeaderValue};
+use base64::{Engine as _, engine::general_purpose::STANDARD};
 use ollama_rs::Ollama;
+use ollama_rs::generation::chat::ChatMessageResponse;
 use ollama_rs::generation::completion::GenerationResponse;
 use ollama_rs::generation::completion::request::GenerationRequest;
 use ollama_rs::generation::embeddings::GenerateEmbeddingsResponse;
 use ollama_rs::generation::embeddings::request::GenerateEmbeddingsRequest;
+use ollama_rs::headers::{HeaderMap, HeaderValue, InvalidHeaderValue};
 use ollama_rs::models::{LocalModel, ModelInfo};
 use opentelemetry::KeyValue;
 use prosa::core::adaptor::Adaptor;
 use prosa::core::error::ProcError;
 use prosa::core::msg::{InternalMsg, Msg};
-use prosa::core::proc::{proc, proc_settings, Proc, ProcBusParam, ProcConfig as _};
+use prosa::core::proc::{Proc, ProcBusParam, ProcConfig as _, proc, proc_settings};
 use prosa::core::service::ServiceError;
 use serde::{Deserialize, Serialize};
 use std::env;
@@ -113,9 +110,21 @@ impl OllamaProcSettings {
 
         if let Some(password) = self.url.password() {
             if self.url.username().is_empty() {
-                header_map.insert("Authorization", HeaderValue::from_str(format!("Bearer {}", password).as_str())?);
+                header_map.insert(
+                    "Authorization",
+                    HeaderValue::from_str(format!("Bearer {}", password).as_str())?,
+                );
             } else {
-                header_map.insert("Authorization", HeaderValue::from_str(format!("Basic {}", STANDARD.encode(format!("{}:{}", self.url.username(), password))).as_str())?);
+                header_map.insert(
+                    "Authorization",
+                    HeaderValue::from_str(
+                        format!(
+                            "Basic {}",
+                            STANDARD.encode(format!("{}:{}", self.url.username(), password))
+                        )
+                        .as_str(),
+                    )?,
+                );
             }
         }
 
@@ -305,41 +314,81 @@ where
                                     debug!("Generate");
                                     match ollama.generate(*request).await {
                                         Ok(response) => {
-                                            if let Some(prompt_eval_count) = response.prompt_eval_count {
-                                                observable_prompt_call_counter.add(prompt_eval_count, &[
-                                                    KeyValue::new("type", "gen"),
-                                                    KeyValue::new("model", response.model.clone()),
-                                                ]);
+                                            if let Some(prompt_eval_count) =
+                                                response.prompt_eval_count
+                                            {
+                                                observable_prompt_call_counter.add(
+                                                    prompt_eval_count,
+                                                    &[
+                                                        KeyValue::new("type", "gen"),
+                                                        KeyValue::new(
+                                                            "model",
+                                                            response.model.clone(),
+                                                        ),
+                                                    ],
+                                                );
                                             }
                                             if let Some(eval_count) = response.eval_count {
-                                                observable_gen_call_counter.add(eval_count, &[
-                                                    KeyValue::new("type", "gen"),
-                                                    KeyValue::new("model", response.model.clone()),
-                                                ]);
+                                                observable_gen_call_counter.add(
+                                                    eval_count,
+                                                    &[
+                                                        KeyValue::new("type", "gen"),
+                                                        KeyValue::new(
+                                                            "model",
+                                                            response.model.clone(),
+                                                        ),
+                                                    ],
+                                                );
                                             }
                                             if let Some(total_duration) = response.total_duration {
-                                                observable_token_histogram.record(total_duration / 1000000, &[
-                                                    KeyValue::new("type", "total"),
-                                                    KeyValue::new("model", response.model.clone()),
-                                                ]);
+                                                observable_token_histogram.record(
+                                                    total_duration / 1000000,
+                                                    &[
+                                                        KeyValue::new("type", "total"),
+                                                        KeyValue::new(
+                                                            "model",
+                                                            response.model.clone(),
+                                                        ),
+                                                    ],
+                                                );
                                             }
                                             if let Some(load_duration) = response.load_duration {
-                                                observable_token_histogram.record(load_duration / 1000000, &[
-                                                    KeyValue::new("type", "load"),
-                                                    KeyValue::new("model", response.model.clone()),
-                                                ]);
+                                                observable_token_histogram.record(
+                                                    load_duration / 1000000,
+                                                    &[
+                                                        KeyValue::new("type", "load"),
+                                                        KeyValue::new(
+                                                            "model",
+                                                            response.model.clone(),
+                                                        ),
+                                                    ],
+                                                );
                                             }
-                                            if let Some(prompt_eval_duration) = response.prompt_eval_duration {
-                                                observable_token_histogram.record(prompt_eval_duration / 1000000, &[
-                                                    KeyValue::new("type", "prompt"),
-                                                    KeyValue::new("model", response.model.clone()),
-                                                ]);
+                                            if let Some(prompt_eval_duration) =
+                                                response.prompt_eval_duration
+                                            {
+                                                observable_token_histogram.record(
+                                                    prompt_eval_duration / 1000000,
+                                                    &[
+                                                        KeyValue::new("type", "prompt"),
+                                                        KeyValue::new(
+                                                            "model",
+                                                            response.model.clone(),
+                                                        ),
+                                                    ],
+                                                );
                                             }
                                             if let Some(eval_duration) = response.eval_duration {
-                                                observable_token_histogram.record(eval_duration / 1000000, &[
-                                                    KeyValue::new("type", "eval"),
-                                                    KeyValue::new("model", response.model.clone()),
-                                                ]);
+                                                observable_token_histogram.record(
+                                                    eval_duration / 1000000,
+                                                    &[
+                                                        KeyValue::new("type", "eval"),
+                                                        KeyValue::new(
+                                                            "model",
+                                                            response.model.clone(),
+                                                        ),
+                                                    ],
+                                                );
                                             }
 
                                             match adaptor.process_ollama_response(response.into()) {
@@ -370,9 +419,10 @@ where
                                     debug!("Generate embeddings");
                                     match ollama.generate_embeddings(*embeddings_request).await {
                                         Ok(response) => {
-                                            observable_gen_call_counter.add(response.embeddings.iter().len() as u64, &[
-                                                KeyValue::new("type", "embed"),
-                                            ]);
+                                            observable_gen_call_counter.add(
+                                                response.embeddings.iter().len() as u64,
+                                                &[KeyValue::new("type", "embed")],
+                                            );
 
                                             match adaptor.process_ollama_response(response.into()) {
                                                 Ok(resp) => {
@@ -381,7 +431,8 @@ where
                                                 }
                                                 Err(e) => {
                                                     drop(enter_span);
-                                                    msg.return_error_to_sender(None, e.into()).await?
+                                                    msg.return_error_to_sender(None, e.into())
+                                                        .await?
                                                 }
                                             }
                                         }
@@ -394,7 +445,7 @@ where
                                             .await?
                                         }
                                     }
-                                },
+                                }
                                 Err(e) => {
                                     warn!("Request error: {e}");
                                     drop(enter_span);
