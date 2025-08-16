@@ -1,6 +1,6 @@
 [package]
 name = "prosa-ollama"
-version = "0.3.1"
+version = "0.4.0"
 authors = ["Jeremy HERGAULT"]
 repository = "https://github.com/reneca/ProSA-Ollama"
 license = "LGPL-3.0-or-later"
@@ -12,12 +12,15 @@ proc = "proc::OllamaProc"
 settings = "proc::OllamaProcSettings"
 
 [dependencies]
-ollama-rs = "0.3"
-prosa = "0.2"
-prosa-utils = "0.2"
+ollama-rs = { version = "0.3", features = ["headers"] }
+prosa = { version = "0.3", default-features = false }
+prosa-utils = { version = "0.3", features = ["msg"] }
 serde = "1"
 tokio = "1"
 thiserror = "2"
 tracing = "0.1"
 bytes = "1"
 url = { version = "2", features = ["serde"] }
+base64 = "0.22"
+
+opentelemetry = { version = "0.29", features = ["metrics", "trace", "logs"] }

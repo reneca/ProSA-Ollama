@@ -1,4 +1,4 @@
-use prosa::core::msg::RequestMsg;
+use prosa_utils::msg::tvf::Tvf;
 
 use crate::proc::{OllamaError, OllamaProc, OllamaRequest, OllamaResponse};
 
@@ -10,7 +10,7 @@ where
         + std::marker::Sized
         + std::clone::Clone
         + std::fmt::Debug
-        + prosa_utils::msg::tvf::Tvf
+        + Tvf
         + std::default::Default,
 {
     /// Method called when the processor spawns to create a new adaptor
@@ -23,13 +23,9 @@ where
     fn process_request<'a>(
         &mut self,
         service_name: &str,
-        request: &M,
+        request: M,
     ) -> Result<OllamaRequest<'a>, OllamaError>;
 
     /// Method to process Ollama responses
-    fn process_ollama_response(
-        &mut self,
-        response: OllamaResponse,
-        original_request: &RequestMsg<M>,
-    ) -> Result<M, OllamaError>;
+    fn process_ollama_response(&mut self, response: OllamaResponse) -> Result<M, OllamaError>;
 }
